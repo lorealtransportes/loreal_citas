@@ -1,0 +1,399 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Agendar Cita | L'Oreal Operations</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --black:#1a1a1a; --amber:#c9a84c; --amber-lt:#fdf8ed; --green:#16a34a; --red:#dc2626; --bg:#2b2b2b; --line:#e0e0e0; --muted:#757575; --card:#ffffff; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size:14px; color:var(--black); }
+  .page { width:min(760px, calc(100% - 24px)); margin:0 auto; padding:24px 0 48px; }
+  .header { background:linear-gradient(135deg, #1a1a1a 0%, #000 100%); color:#fff; padding:22px 28px; border-radius:18px; margin-bottom:20px; }
+  .header h1 { margin:0; font-size:19px; font-weight:700; }
+  .header p { margin:6px 0 0; color:var(--amber); font-size:12px; font-weight:600; letter-spacing:.3px; }
+  .panel { background:var(--card); border-radius:18px; padding:26px; box-shadow:0 4px 16px rgba(0,0,0,.1); }
+  .field { margin-bottom:16px; }
+  label { display:block; font-size:12.5px; font-weight:700; color:#444; margin-bottom:6px; }
+  input, select, textarea { width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-size:14px; font-family:inherit; background:#fff; }
+  .opciones-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
+  .opcion-card { border:2px solid var(--line); border-radius:12px; padding:14px 10px; text-align:center; cursor:pointer; font-weight:700; font-size:13px; transition:border-color .15s, background .15s; }
+  .opcion-card:hover { border-color:var(--amber); }
+  .opcion-card.selected { border-color:var(--amber); background:var(--amber-lt); }
+  .slots-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; max-height:280px; overflow-y:auto; padding:4px; }
+  .slot-btn { border:1px solid var(--line); border-radius:9px; padding:10px 8px; text-align:center; font-size:12.5px; font-weight:600; cursor:pointer; background:#fafafa; }
+  .slot-btn:hover { border-color:var(--amber); }
+  .slot-btn.selected { background:var(--amber); border-color:var(--amber); color:#1a1a1a; }
+  .slot-empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:20px; font-weight:600; }
+  button.btn { width:100%; border:0; border-radius:12px; padding:14px; font-size:14.5px; font-weight:800; cursor:pointer; background:var(--amber); color:#1a1a1a; margin-top:10px; }
+  button.btn:disabled { opacity:.5; cursor:not-allowed; }
+  button.btn-secundario { background:var(--line); color:var(--black); margin-top:8px; }
+  .error-msg { color:var(--red); font-size:12.5px; font-weight:600; margin:8px 0; text-align:center; }
+  .hidden { display:none !important; }
+  .confirmacion { text-align:center; padding:30px 10px; }
+  .confirmacion h2 { color:var(--green); margin-bottom:14px; }
+  .resumen { background:var(--bg); color:#fff; border-radius:14px; padding:18px; text-align:left; margin-top:16px; font-size:13px; }
+  .resumen div { margin-bottom:6px; }
+  .resumen b { color:var(--amber); }
+  .req { color:var(--red); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h1>Agendar Cita</h1>
+    <p>L'OREAL OPERATIONS · AGENDAMIENTO DE CITAS COLOMBIA</p>
+  </div>
+
+  <div class="panel" id="panelForm">
+    <div id="pasoDatos">
+      <div class="field">
+        <label>Correo electronico <span class="req">*</span></label>
+        <input id="correo" type="email" placeholder="correo@empresa.com" />
+      </div>
+      <div class="field">
+        <label>Nombre de la Empresa <span class="req">*</span></label>
+        <input id="empresa" type="text" />
+      </div>
+      <div class="field">
+        <label>Que proceso va a realizar <span class="req">*</span></label>
+        <div class="opciones-grid" id="opcionesProceso">
+          <div class="opcion-card" data-val="Cargue">Cargue</div>
+          <div class="opcion-card" data-val="Descargue">Descargue</div>
+          <div class="opcion-card" data-val="Insumos">Insumos</div>
+        </div>
+      </div>
+
+      <!-- Sub-rama descargue -->
+      <div class="field hidden" id="campoTipoDescargue">
+        <label>Que tipo de entrega va a realizar <span class="req">*</span></label>
+        <div class="opciones-grid" id="opcionesTipoDescargue">
+          <div class="opcion-card" data-val="Importaciones">Importaciones</div>
+          <div class="opcion-card" data-val="Proveedor">Proveedor</div>
+          <div class="opcion-card" data-val="Planta">Planta</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor dinamico segun rama -->
+    <div id="camposRama"></div>
+
+    <!-- Selector de horario (no aplica a Insumos) -->
+    <div class="field hidden" id="bloqueHorario">
+      <label>Seleccione fecha y hora de la cita <span class="req">*</span></label>
+      <div class="slots-grid" id="slotsGrid"><div class="slot-empty">Cargando horarios...</div></div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn" id="btnEnviar">Confirmar cita</button>
+  </div>
+
+  <div class="panel hidden" id="panelConfirmacion">
+    <div class="confirmacion">
+      <h2>✅ Cita agendada correctamente</h2>
+      <p>Guarda esta confirmacion, la puedes tomar como constancia de tu cita.</p>
+      <div class="resumen" id="resumenFinal"></div>
+      <button class="btn btn-secundario" onclick="location.reload()">Agendar otra cita</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = "TU_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "TU_SUPABASE_ANON_KEY";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Horarios por tipo de cita (igual que el script original)
+const HORAS = {
+  agentes:        { lv: ['08:00','10:00','12:00'], sab: null },
+  importaciones:  { lv: ['09:30','12:30','15:30'], sab: ['08:00','09:00','10:00'] },
+  proveedor:      { lv: ['09:00','11:00','15:00'], sab: ['08:00','09:00','10:00'] },
+  planta:         { lv: ['08:00','10:00','12:00','14:00','15:00','16:00'], sab: ['08:00','09:00','10:00','11:00','12:00'] }
+};
+
+let ESTADO = { proceso:null, tipoDescargue:null, tipoCita:null, slotSeleccionado:null, archivoOrden:null };
+let FESTIVOS = [];
+
+async function cargarFestivos() {
+  const { data } = await db.from('festivos').select('fecha');
+  FESTIVOS = (data || []).map(f => f.fecha);
+}
+
+function fmt(d) { return d.toISOString().slice(0,10); }
+function esFestivo(d) { return FESTIVOS.includes(fmt(d)); }
+function esFinde(d) { const w = d.getDay(); return w === 0 || w === 6; }
+
+function generarDiasLV() {
+  let hoy = new Date(); hoy.setHours(0,0,0,0);
+  let manana = new Date(hoy); manana.setDate(manana.getDate()+1);
+  while (manana.getDay() === 0 || manana.getDay() === 6) manana.setDate(manana.getDate()+1);
+
+  let dias = [];
+  let cursor = new Date(manana);
+  // Avanza hasta el viernes de esa semana
+  let diff = 5 - cursor.getDay();
+  let viernes = new Date(cursor); viernes.setDate(viernes.getDate() + diff);
+
+  let c = new Date(cursor);
+  while (c <= viernes) {
+    if (!esFestivo(c)) dias.push(new Date(c));
+    c.setDate(c.getDate()+1);
+  }
+
+  if (dias.length === 0) {
+    // Extiende a la semana siguiente completa si todos los dias eran festivos
+    let lunesSig = new Date(viernes); lunesSig.setDate(lunesSig.getDate()+3);
+    while (lunesSig.getDay() === 0 || lunesSig.getDay() === 6) lunesSig.setDate(lunesSig.getDate()+1);
+    let viernesSig = new Date(lunesSig); viernesSig.setDate(viernesSig.getDate() + (5 - lunesSig.getDay()));
+    let c2 = new Date(lunesSig);
+    while (c2 <= viernesSig) {
+      if (!esFestivo(c2) && !esFinde(c2)) dias.push(new Date(c2));
+      c2.setDate(c2.getDate()+1);
+    }
+  }
+  return dias;
+}
+
+function proximoSabado() {
+  let hoy = new Date(); hoy.setHours(0,0,0,0);
+  let diff = (6 - hoy.getDay() + 7) % 7;
+  if (diff === 0) diff = 7;
+  let sab = new Date(hoy); sab.setDate(sab.getDate()+diff);
+  if (esFestivo(sab)) sab.setDate(sab.getDate()+7);
+  return sab;
+}
+
+function generarSlotsCandidatos(tipoCita) {
+  const horas = HORAS[tipoCita];
+  const candidatos = [];
+  generarDiasLV().forEach(d => {
+    horas.lv.forEach(h => candidatos.push({ fecha: fmt(d), hora: h }));
+  });
+  if (horas.sab) {
+    const sab = proximoSabado();
+    horas.sab.forEach(h => candidatos.push({ fecha: fmt(sab), hora: h }));
+  }
+  return candidatos;
+}
+
+async function cargarSlotsDisponibles(tipoCita) {
+  const grid = document.getElementById('slotsGrid');
+  grid.innerHTML = '<div class="slot-empty">Cargando horarios...</div>';
+
+  const candidatos = generarSlotsCandidatos(tipoCita);
+  const { data: ocupadas } = await db.from('franjas_ocupadas').select('fecha,hora').eq('tipo_cita', tipoCita);
+  const ocupadasSet = new Set((ocupadas||[]).map(o => o.fecha + '_' + o.hora.slice(0,5)));
+
+  const libres = candidatos.filter(c => !ocupadasSet.has(c.fecha + '_' + c.hora));
+
+  if (!libres.length) {
+    grid.innerHTML = '<div class="slot-empty">No hay horarios disponibles en este momento.</div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  libres.forEach(slot => {
+    const [y,m,dd] = slot.fecha.split('-');
+    const div = document.createElement('div');
+    div.className = 'slot-btn';
+    div.textContent = `${dd}/${m}/${y} - ${slot.hora}`;
+    div.onclick = () => {
+      document.querySelectorAll('.slot-btn').forEach(el => el.classList.remove('selected'));
+      div.classList.add('selected');
+      ESTADO.slotSeleccionado = slot;
+    };
+    grid.appendChild(div);
+  });
+}
+
+// ===================== SELECCION DE PROCESO =====================
+document.getElementById('opcionesProceso').addEventListener('click', (e) => {
+  const card = e.target.closest('.opcion-card');
+  if (!card) return;
+  document.querySelectorAll('#opcionesProceso .opcion-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  ESTADO.proceso = card.dataset.val;
+  ESTADO.tipoDescargue = null;
+  document.getElementById('campoTipoDescargue').classList.toggle('hidden', ESTADO.proceso !== 'Descargue');
+  document.getElementById('bloqueHorario').classList.add('hidden');
+  renderCamposRama();
+});
+
+document.getElementById('opcionesTipoDescargue').addEventListener('click', (e) => {
+  const card = e.target.closest('.opcion-card');
+  if (!card) return;
+  document.querySelectorAll('#opcionesTipoDescargue .opcion-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  ESTADO.tipoDescargue = card.dataset.val;
+  renderCamposRama();
+});
+
+function renderCamposRama() {
+  const cont = document.getElementById('camposRama');
+  const bloqueHorario = document.getElementById('bloqueHorario');
+  cont.innerHTML = '';
+  bloqueHorario.classList.add('hidden');
+  ESTADO.tipoCita = null;
+  ESTADO.slotSeleccionado = null;
+
+  if (ESTADO.proceso === 'Cargue') {
+    cont.innerHTML = `
+      <div class="field"><label>Que Agente se va a cargar <span class="req">*</span></label><input id="r_agente" /></div>
+      <div class="field"><label>Nombre del conductor <span class="req">*</span></label><input id="r_conductor" /></div>
+      <div class="field"><label>Cedula del conductor <span class="req">*</span></label><input id="r_cedula" /></div>
+      <div class="field"><label>Placa del vehiculo <span class="req">*</span></label><input id="r_placa" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
+    `;
+    ESTADO.tipoCita = 'agentes';
+    bloqueHorario.classList.remove('hidden');
+    cargarSlotsDisponibles('agentes');
+
+  } else if (ESTADO.proceso === 'Descargue' && ESTADO.tipoDescargue === 'Importaciones') {
+    cont.innerHTML = `
+      <div class="field"><label>De que puerto proviene <span class="req">*</span></label>
+        <select id="r_puerto"><option value="">Seleccione</option><option>Cartagena</option><option>Bogota</option><option>Buenaventura</option></select></div>
+      <div class="field"><label>Placa del Vehiculo <span class="req">*</span></label><input id="r_placa" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
+      <div class="field"><label>Tipo de Vehiculo <span class="req">*</span></label>
+        <select id="r_tipo_vehiculo"><option value="">Seleccione</option><option>Contenedor de 40</option><option>Contenedor de 20</option><option>Turbo</option></select></div>
+      <div class="field"><label>Numero del contenedor <span class="req">*</span></label><input id="r_num_contenedor" /></div>
+      <div class="field"><label>Numero de pedido <span class="req">*</span></label><input id="r_num_pedido" /></div>
+      <div class="field"><label>Volumetria M3 aproximado <span class="req">*</span></label><input id="r_volumetria" /></div>
+      <div class="field"><label>Numero/s de FEX <span class="req">*</span></label><input id="r_fex" /></div>
+      <div class="field"><label>Peso aproximado <span class="req">*</span></label><input id="r_peso" /></div>
+    `;
+    ESTADO.tipoCita = 'importaciones';
+    bloqueHorario.classList.remove('hidden');
+    cargarSlotsDisponibles('importaciones');
+
+  } else if (ESTADO.proceso === 'Descargue' && ESTADO.tipoDescargue === 'Proveedor') {
+    cont.innerHTML = `
+      <div class="field"><label>Placa del Vehiculo <span class="req">*</span></label><input id="r_placa" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
+      <div class="field"><label>Tipo de Vehiculo <span class="req">*</span></label>
+        <select id="r_tipo_vehiculo"><option value="">Seleccione</option><option>Contenedor de 40</option><option>Contenedor de 20</option><option>Turbo</option></select></div>
+      <div class="field"><label>Numero de orden de compra <span class="req">*</span></label><input id="r_num_orden" /></div>
+      <div class="field"><label>Cargue el PDF de la orden de compra <span class="req">*</span></label><input id="r_pdf" type="file" accept="application/pdf" /></div>
+      <div class="field"><label>Numero/s de FEX <span class="req">*</span></label><input id="r_fex" /></div>
+      <div class="field"><label>Peso aproximado <span class="req">*</span></label><input id="r_peso" /></div>
+      <div class="field"><label>Volumetria M3 aproximado <span class="req">*</span></label><input id="r_volumetria" /></div>
+      <div class="field"><label>Numero de SKU <span class="req">*</span></label><input id="r_sku" /></div>
+      <div class="field"><label>Numero de cajas por SKU <span class="req">*</span></label><input id="r_cajas" /></div>
+      <div class="field"><label>Cantidad de unidades por SKU <span class="req">*</span></label><input id="r_unidades" /></div>
+    `;
+    ESTADO.tipoCita = 'proveedor';
+    bloqueHorario.classList.remove('hidden');
+    cargarSlotsDisponibles('proveedor');
+
+  } else if (ESTADO.proceso === 'Descargue' && ESTADO.tipoDescargue === 'Planta') {
+    cont.innerHTML = `
+      <div class="field"><label>Cantidad Pallets <span class="req">*</span></label><input id="r_pallets" /></div>
+      <div class="field"><label>Numero de TR o FEX <span class="req">*</span></label><input id="r_tr_fex" /></div>
+      <div class="field"><label>Placa del Vehiculo <span class="req">*</span></label><input id="r_placa" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
+      <div class="field"><label>Nombre del conductor <span class="req">*</span></label><input id="r_conductor" /></div>
+    `;
+    ESTADO.tipoCita = 'planta';
+    bloqueHorario.classList.remove('hidden');
+    cargarSlotsDisponibles('planta');
+
+  } else if (ESTADO.proceso === 'Insumos') {
+    cont.innerHTML = `
+      <div class="field"><label>Nombre del Proveedor <span class="req">*</span></label><input id="r_nombre_proveedor" /></div>
+      <div class="field"><label>Orden de Compra <span class="req">*</span></label><input id="r_orden_insumos" /></div>
+      <div class="field"><label>Referencias <span class="req">*</span></label><textarea id="r_referencias"></textarea></div>
+      <div class="field"><label>Cantidades <span class="req">*</span></label><textarea id="r_cantidades"></textarea></div>
+      <div class="field"><label>Fecha estimada de llegada <span class="req">*</span></label><input id="r_fecha_llegada" type="date" /></div>
+    `;
+    // Insumos no requiere horario de cita
+  }
+}
+
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+// ===================== ENVIO =====================
+document.getElementById('btnEnviar').addEventListener('click', async () => {
+  const errorMsg = document.getElementById('errorMsg');
+  errorMsg.textContent = '';
+
+  const correo = val('correo');
+  const empresa = val('empresa');
+  if (!correo || !empresa) { errorMsg.textContent = 'Completa correo y nombre de la empresa.'; return; }
+  if (!ESTADO.proceso) { errorMsg.textContent = 'Selecciona el proceso a realizar.'; return; }
+  if (ESTADO.proceso === 'Descargue' && !ESTADO.tipoDescargue) { errorMsg.textContent = 'Selecciona el tipo de entrega.'; return; }
+  if (ESTADO.tipoCita && !ESTADO.slotSeleccionado) { errorMsg.textContent = 'Selecciona un horario disponible para tu cita.'; return; }
+
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+
+  try {
+    const payload = { correo, empresa, proceso: ESTADO.proceso, tipo_descargue: ESTADO.tipoDescargue };
+
+    if (ESTADO.proceso === 'Cargue') {
+      Object.assign(payload, { agente: val('r_agente'), conductor: val('r_conductor'), cedula_conductor: val('r_cedula'), placa: val('r_placa') });
+    } else if (ESTADO.tipoDescargue === 'Importaciones') {
+      Object.assign(payload, { puerto: val('r_puerto'), placa: val('r_placa'), tipo_vehiculo: val('r_tipo_vehiculo'),
+        numero_contenedor: val('r_num_contenedor'), numero_pedido: val('r_num_pedido'), volumetria_m3: val('r_volumetria'),
+        numero_fex: val('r_fex'), peso_aproximado: val('r_peso') });
+    } else if (ESTADO.tipoDescargue === 'Proveedor') {
+      const fileInput = document.getElementById('r_pdf');
+      if (!fileInput.files[0]) throw new Error('Debes adjuntar el PDF de la orden de compra.');
+      Object.assign(payload, { placa: val('r_placa'), tipo_vehiculo: val('r_tipo_vehiculo'), numero_orden_compra: val('r_num_orden'),
+        numero_fex: val('r_fex'), peso_aproximado: val('r_peso'), volumetria_m3: val('r_volumetria'),
+        numero_sku: val('r_sku'), numero_cajas_sku: val('r_cajas'), cantidad_unidades_sku: val('r_unidades') });
+      ESTADO.archivoOrden = fileInput.files[0];
+    } else if (ESTADO.tipoDescargue === 'Planta') {
+      Object.assign(payload, { cantidad_pallets: val('r_pallets'), numero_tr_fex: val('r_tr_fex'), placa: val('r_placa'), conductor: val('r_conductor') });
+    } else if (ESTADO.proceso === 'Insumos') {
+      Object.assign(payload, { nombre_proveedor: val('r_nombre_proveedor'), orden_compra_insumos: val('r_orden_insumos'),
+        referencias: val('r_referencias'), cantidades: val('r_cantidades'), fecha_estimada_llegada: val('r_fecha_llegada') || null });
+    }
+
+    if (ESTADO.slotSeleccionado) {
+      payload.fecha_cita = ESTADO.slotSeleccionado.fecha;
+      payload.hora_cita = ESTADO.slotSeleccionado.hora;
+    }
+
+    const { data: cita, error: errCita } = await db.from('citas').insert(payload).select().single();
+    if (errCita) throw errCita;
+
+    if (ESTADO.tipoCita && ESTADO.slotSeleccionado) {
+      const { error: errFranja } = await db.from('franjas_ocupadas').insert({
+        tipo_cita: ESTADO.tipoCita, fecha: ESTADO.slotSeleccionado.fecha, hora: ESTADO.slotSeleccionado.hora, cita_id: cita.id
+      });
+      if (errFranja) {
+        await db.from('citas').delete().eq('id', cita.id);
+        throw new Error('Ese horario acaba de ser tomado por otra persona. Por favor selecciona otro horario disponible.');
+      }
+    }
+
+    if (ESTADO.archivoOrden) {
+      const path = `ordenes_compra/${cita.id}_${ESTADO.archivoOrden.name}`;
+      const { error: errUp } = await db.storage.from('citas').upload(path, ESTADO.archivoOrden);
+      if (!errUp) {
+        await db.from('citas').update({ storage_path_orden_compra: path }).eq('id', cita.id);
+      }
+    }
+
+    mostrarConfirmacion(cita);
+  } catch (err) {
+    errorMsg.textContent = 'Error: ' + err.message;
+    if (ESTADO.tipoCita) cargarSlotsDisponibles(ESTADO.tipoCita);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar cita';
+  }
+});
+
+function mostrarConfirmacion(cita) {
+  document.getElementById('panelForm').classList.add('hidden');
+  document.getElementById('panelConfirmacion').classList.remove('hidden');
+  let html = `<div><b>Empresa:</b> ${cita.empresa}</div><div><b>Correo:</b> ${cita.correo}</div><div><b>Proceso:</b> ${cita.proceso}${cita.tipo_descargue ? ' - ' + cita.tipo_descargue : ''}</div>`;
+  if (cita.fecha_cita) html += `<div><b>Fecha de cita:</b> ${cita.fecha_cita}</div><div><b>Hora:</b> ${cita.hora_cita}</div>`;
+  if (cita.placa) html += `<div><b>Placa:</b> ${cita.placa}</div>`;
+  document.getElementById('resumenFinal').innerHTML = html;
+}
+
+cargarFestivos();
+</script>
+</body>
+</html>
