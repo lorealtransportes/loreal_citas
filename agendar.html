@@ -9,48 +9,115 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --black:#1a1a1a; --amber:#c9a84c; --amber-lt:#fdf8ed; --green:#16a34a; --red:#dc2626; --bg:#2b2b2b; --line:#e0e0e0; --muted:#757575; --card:#ffffff; }
+  :root { --black:#1a1a1a; --amber:#c9a84c; --amber-lt:#fdf8ed; --green:#16a34a; --red:#dc2626; --line:#e0e0e0; --muted:#8a8a8a; }
   * { box-sizing:border-box; }
-  body { margin:0; background:var(--bg); font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size:14px; color:var(--black); }
-  .page { width:min(760px, calc(100% - 24px)); margin:0 auto; padding:24px 0 48px; }
-  .header { background:linear-gradient(135deg, #1a1a1a 0%, #000 100%); color:#fff; padding:22px 28px; border-radius:18px; margin-bottom:20px; }
-  .header h1 { margin:0; font-size:19px; font-weight:700; }
-  .header p { margin:6px 0 0; color:var(--amber); font-size:12px; font-weight:600; letter-spacing:.3px; }
-  .panel { background:var(--card); border-radius:18px; padding:26px; box-shadow:0 4px 16px rgba(0,0,0,.1); }
+  body {
+    margin:0; min-height:100vh;
+    background: radial-gradient(circle at top, #232323 0%, #000000 75%);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color:#1a1a1a;
+    display:flex; justify-content:center;
+    padding:30px 16px 60px;
+  }
+  .page { width:min(760px, 100%); }
+
+  .top { text-align:center; margin-bottom:26px; animation:fadeDown .6s ease; }
+  .top img.logo { width:170px; margin-bottom:10px; }
+  .top .division { color:rgba(255,255,255,.4); font-size:10px; letter-spacing:4px; text-transform:uppercase; font-weight:700; }
+  .top h1 { color:#fff; font-size:22px; font-weight:800; margin:10px 0 4px; }
+  .top p { color:var(--amber); font-size:12px; font-weight:600; letter-spacing:.4px; }
+
+  /* Barra de progreso */
+  .progreso { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:24px; }
+  .progreso .paso-dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.15); transition:all .3s; }
+  .progreso .paso-dot.activo { background:var(--amber); width:26px; border-radius:6px; }
+  .progreso .paso-dot.hecho { background:var(--green); }
+
+  .panel {
+    background:#fff; border-radius:22px; padding:30px 28px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    animation:fadeUp .45s ease;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(18px);} to { opacity:1; transform:translateY(0);} }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px);} to { opacity:1; transform:translateY(0);} }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+  @keyframes popIn { from { opacity:0; transform:scale(.85);} to { opacity:1; transform:scale(1);} }
+
+  .step { display:none; animation:fadeIn .35s ease; }
+  .step.activo { display:block; }
+
+  .step-title { font-size:16px; font-weight:800; color:var(--black); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
+  .step-title .num { background:var(--black); color:var(--amber); width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; }
+
   .field { margin-bottom:16px; }
   label { display:block; font-size:12.5px; font-weight:700; color:#444; margin-bottom:6px; }
-  input, select, textarea { width:100%; border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-size:14px; font-family:inherit; background:#fff; }
-  .opciones-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; }
-  .opcion-card { border:2px solid var(--line); border-radius:12px; padding:14px 10px; text-align:center; cursor:pointer; font-weight:700; font-size:13px; transition:border-color .15s, background .15s; }
-  .opcion-card:hover { border-color:var(--amber); }
-  .opcion-card.selected { border-color:var(--amber); background:var(--amber-lt); }
-  .slots-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; max-height:280px; overflow-y:auto; padding:4px; }
-  .slot-btn { border:1px solid var(--line); border-radius:9px; padding:10px 8px; text-align:center; font-size:12.5px; font-weight:600; cursor:pointer; background:#fafafa; }
-  .slot-btn:hover { border-color:var(--amber); }
-  .slot-btn.selected { background:var(--amber); border-color:var(--amber); color:#1a1a1a; }
-  .slot-empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:20px; font-weight:600; }
-  button.btn { width:100%; border:0; border-radius:12px; padding:14px; font-size:14.5px; font-weight:800; cursor:pointer; background:var(--amber); color:#1a1a1a; margin-top:10px; }
+  input, select, textarea {
+    width:100%; border:1.5px solid var(--line); border-radius:12px; padding:12px 14px;
+    font-size:14px; font-family:inherit; background:#fafafa; transition:border-color .15s, background .15s;
+  }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--amber); background:#fff; }
+  textarea { min-height:80px; resize:vertical; }
+
+  .opciones-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+  .opcion-card {
+    border:2px solid var(--line); border-radius:16px; padding:20px 12px; text-align:center; cursor:pointer;
+    font-weight:700; font-size:13.5px; transition:all .18s; background:#fafafa; position:relative; overflow:hidden;
+  }
+  .opcion-card .icono { font-size:30px; display:block; margin-bottom:8px; }
+  .opcion-card:hover { border-color:var(--amber); transform:translateY(-3px); box-shadow:0 8px 20px rgba(201,168,76,.2); }
+  .opcion-card.selected { border-color:var(--amber); background:var(--amber-lt); box-shadow:0 8px 20px rgba(201,168,76,.25); }
+  .opcion-card.selected::after { content:"✓"; position:absolute; top:8px; right:10px; color:var(--green); font-weight:900; font-size:15px; }
+
+  .slots-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; max-height:280px; overflow-y:auto; padding:4px; }
+  .slot-btn { border:1.5px solid var(--line); border-radius:11px; padding:11px 8px; text-align:center; font-size:12.5px; font-weight:700; cursor:pointer; background:#fafafa; transition:all .15s; }
+  .slot-btn:hover { border-color:var(--amber); transform:scale(1.03); }
+  .slot-btn.selected { background:var(--black); border-color:var(--black); color:var(--amber); }
+  .slot-empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:24px; font-weight:600; }
+
+  .botones-nav { display:flex; gap:10px; margin-top:22px; }
+  button.btn { flex:1; border:0; border-radius:13px; padding:15px; font-size:14.5px; font-weight:800; cursor:pointer; background:var(--amber); color:#1a1a1a; transition:opacity .15s, transform .1s; }
+  button.btn:hover:not(:disabled) { opacity:.88; transform:scale(1.01); }
   button.btn:disabled { opacity:.5; cursor:not-allowed; }
-  button.btn-secundario { background:var(--line); color:var(--black); margin-top:8px; }
-  .error-msg { color:var(--red); font-size:12.5px; font-weight:600; margin:8px 0; text-align:center; }
-  .hidden { display:none !important; }
-  .confirmacion { text-align:center; padding:30px 10px; }
-  .confirmacion h2 { color:var(--green); margin-bottom:14px; }
-  .resumen { background:var(--bg); color:#fff; border-radius:14px; padding:18px; text-align:left; margin-top:16px; font-size:13px; }
-  .resumen div { margin-bottom:6px; }
-  .resumen b { color:var(--amber); }
+  button.btn-atras { background:var(--line); color:var(--black); flex:0 0 110px; }
+
+  .error-msg { color:var(--red); font-size:12.5px; font-weight:700; margin:10px 0; text-align:center; animation:popIn .25s ease; }
+
+  .confirmacion { text-align:center; padding:20px 10px; }
+  .check-anim { width:80px; height:80px; border-radius:50%; background:var(--amber-lt); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; animation:popIn .5s ease; }
+  .check-anim span { font-size:40px; color:var(--green); }
+  .confirmacion h2 { color:var(--black); font-size:20px; margin-bottom:8px; }
+  .confirmacion p { color:var(--muted); font-size:13px; margin-bottom:18px; }
+  .resumen { background:var(--black); color:#fff; border-radius:16px; padding:20px; text-align:left; font-size:13px; animation:fadeUp .4s ease; }
+  .resumen div { margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:6px; }
+  .resumen div:last-child { border-bottom:0; }
+  .resumen b { color:var(--amber); font-weight:700; }
+
   .req { color:var(--red); }
+  .hidden { display:none !important; }
+
+  .file-drop { border:2px dashed var(--line); border-radius:14px; padding:22px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s; }
+  .file-drop:hover { border-color:var(--amber); background:var(--amber-lt); }
+  .file-drop.has-file { border-color:var(--green); background:#f0fdf4; }
+  .file-drop input { display:none; }
+  .file-drop .icono { font-size:26px; display:block; margin-bottom:6px; }
 </style>
 </head>
 <body>
 <div class="page">
-  <div class="header">
+  <div class="top">
+    <img class="logo" src="data:image/png;base64,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" alt="L'Oreal" />
+    <div class="division">OPERATIONS</div>
     <h1>Agendar Cita</h1>
-    <p>L'OREAL OPERATIONS · AGENDAMIENTO DE CITAS COLOMBIA</p>
+    <p>AGENDAMIENTO DE CITAS · COLOMBIA</p>
   </div>
 
+  <div class="progreso" id="progresoBar"></div>
+
   <div class="panel" id="panelForm">
-    <div id="pasoDatos">
+
+    <!-- PASO 1: Datos generales -->
+    <div class="step activo" data-step="1">
+      <div class="step-title"><span class="num">1</span> Datos generales</div>
       <div class="field">
         <label>Correo electronico <span class="req">*</span></label>
         <input id="correo" type="email" placeholder="correo@empresa.com" />
@@ -62,52 +129,67 @@
       <div class="field">
         <label>Que proceso va a realizar <span class="req">*</span></label>
         <div class="opciones-grid" id="opcionesProceso">
-          <div class="opcion-card" data-val="Cargue">Cargue</div>
-          <div class="opcion-card" data-val="Descargue">Descargue</div>
-          <div class="opcion-card" data-val="Insumos">Insumos</div>
+          <div class="opcion-card" data-val="Cargue"><span class="icono">📦</span>Cargue</div>
+          <div class="opcion-card" data-val="Descargue"><span class="icono">🚚</span>Descargue</div>
+          <div class="opcion-card" data-val="Insumos"><span class="icono">🧰</span>Insumos</div>
         </div>
       </div>
-
-      <!-- Sub-rama descargue -->
       <div class="field hidden" id="campoTipoDescargue">
         <label>Que tipo de entrega va a realizar <span class="req">*</span></label>
         <div class="opciones-grid" id="opcionesTipoDescargue">
-          <div class="opcion-card" data-val="Importaciones">Importaciones</div>
-          <div class="opcion-card" data-val="Proveedor">Proveedor</div>
-          <div class="opcion-card" data-val="Planta">Planta</div>
+          <div class="opcion-card" data-val="Importaciones"><span class="icono">🛳</span>Importaciones</div>
+          <div class="opcion-card" data-val="Proveedor"><span class="icono">🏭</span>Proveedor</div>
+          <div class="opcion-card" data-val="Planta"><span class="icono">🏗</span>Planta</div>
         </div>
+      </div>
+      <div class="error-msg" id="errorPaso1"></div>
+      <div class="botones-nav">
+        <button class="btn" id="btnSiguientePaso1">Continuar →</button>
       </div>
     </div>
 
-    <!-- Contenedor dinamico segun rama -->
-    <div id="camposRama"></div>
-
-    <!-- Selector de horario (no aplica a Insumos) -->
-    <div class="field hidden" id="bloqueHorario">
-      <label>Seleccione fecha y hora de la cita <span class="req">*</span></label>
-      <div class="slots-grid" id="slotsGrid"><div class="slot-empty">Cargando horarios...</div></div>
+    <!-- PASO 2: Campos especificos de la rama -->
+    <div class="step" data-step="2">
+      <div class="step-title"><span class="num">2</span> Detalles del vehiculo / entrega</div>
+      <div id="camposRama"></div>
+      <div class="error-msg" id="errorPaso2"></div>
+      <div class="botones-nav">
+        <button class="btn btn-atras" id="btnAtrasPaso2">← Atras</button>
+        <button class="btn" id="btnSiguientePaso2">Continuar →</button>
+      </div>
     </div>
 
-    <div class="error-msg" id="errorMsg"></div>
-    <button class="btn" id="btnEnviar">Confirmar cita</button>
+    <!-- PASO 3: Horario -->
+    <div class="step" data-step="3">
+      <div class="step-title"><span class="num">3</span> Selecciona tu horario</div>
+      <div class="slots-grid" id="slotsGrid"><div class="slot-empty">Cargando horarios...</div></div>
+      <div class="error-msg" id="errorPaso3"></div>
+      <div class="botones-nav">
+        <button class="btn btn-atras" id="btnAtrasPaso3">← Atras</button>
+        <button class="btn" id="btnEnviar">Confirmar cita</button>
+      </div>
+    </div>
+
   </div>
 
   <div class="panel hidden" id="panelConfirmacion">
     <div class="confirmacion">
-      <h2>✅ Cita agendada correctamente</h2>
-      <p>Guarda esta confirmacion, la puedes tomar como constancia de tu cita.</p>
+      <div class="check-anim"><span>✓</span></div>
+      <h2>Cita agendada correctamente</h2>
+      <p>Guarda esta confirmacion como constancia de tu cita.</p>
       <div class="resumen" id="resumenFinal"></div>
-      <button class="btn btn-secundario" onclick="location.reload()">Agendar otra cita</button>
+      <div class="botones-nav" style="margin-top:20px;">
+        <button class="btn" onclick="location.reload()">Agendar otra cita</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 const SUPABASE_URL = "https://rejjjlkptibdhozlnnlt.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJlampqbGtwdGliZGhvemxubmx0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkwMzI2ODIsImV4cCI6MjEwNDYwODY4Mn0.Mg4hymsBPKUUEKMLlUoKrLupIYs4tyRGIFu3v_aL6Yc";
+const SUPABASE_ANON_KEY = "TU_ANON_KEY_AQUI";
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Horarios por tipo de cita (igual que el script original)
 const HORAS = {
   agentes:        { lv: ['08:00','10:00','12:00'], sab: null },
   importaciones:  { lv: ['09:30','12:30','15:30'], sab: ['08:00','09:00','10:00'] },
@@ -115,8 +197,32 @@ const HORAS = {
   planta:         { lv: ['08:00','10:00','12:00','14:00','15:00','16:00'], sab: ['08:00','09:00','10:00','11:00','12:00'] }
 };
 
-let ESTADO = { proceso:null, tipoDescargue:null, tipoCita:null, slotSeleccionado:null, archivoOrden:null };
+let ESTADO = { proceso:null, tipoDescargue:null, tipoCita:null, slotSeleccionado:null, archivoOrden:null, pasoActual:1 };
 let FESTIVOS = [];
+
+const TOTAL_PASOS_CON_HORARIO = 3;
+const TOTAL_PASOS_SIN_HORARIO = 2; // Insumos no tiene paso de horario
+
+function totalPasos() { return ESTADO.proceso === 'Insumos' ? TOTAL_PASOS_SIN_HORARIO : TOTAL_PASOS_CON_HORARIO; }
+
+function renderProgreso() {
+  const cont = document.getElementById('progresoBar');
+  cont.innerHTML = '';
+  const total = totalPasos();
+  for (let i = 1; i <= total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'paso-dot' + (i === ESTADO.pasoActual ? ' activo' : (i < ESTADO.pasoActual ? ' hecho' : ''));
+    cont.appendChild(dot);
+  }
+}
+
+function irAPaso(n) {
+  ESTADO.pasoActual = n;
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('activo'));
+  document.querySelector(`.step[data-step="${n}"]`).classList.add('activo');
+  renderProgreso();
+  window.scrollTo({ top: 0, behavior:'smooth' });
+}
 
 async function cargarFestivos() {
   const { data } = await db.from('festivos').select('fecha');
@@ -131,37 +237,23 @@ function generarDiasLV() {
   let hoy = new Date(); hoy.setHours(0,0,0,0);
   let manana = new Date(hoy); manana.setDate(manana.getDate()+1);
   while (manana.getDay() === 0 || manana.getDay() === 6) manana.setDate(manana.getDate()+1);
-
   let dias = [];
-  let cursor = new Date(manana);
-  // Avanza hasta el viernes de esa semana
-  let diff = 5 - cursor.getDay();
-  let viernes = new Date(cursor); viernes.setDate(viernes.getDate() + diff);
-
-  let c = new Date(cursor);
-  while (c <= viernes) {
-    if (!esFestivo(c)) dias.push(new Date(c));
-    c.setDate(c.getDate()+1);
-  }
-
+  let viernes = new Date(manana); viernes.setDate(viernes.getDate() + (5 - manana.getDay()));
+  let c = new Date(manana);
+  while (c <= viernes) { if (!esFestivo(c)) dias.push(new Date(c)); c.setDate(c.getDate()+1); }
   if (dias.length === 0) {
-    // Extiende a la semana siguiente completa si todos los dias eran festivos
     let lunesSig = new Date(viernes); lunesSig.setDate(lunesSig.getDate()+3);
     while (lunesSig.getDay() === 0 || lunesSig.getDay() === 6) lunesSig.setDate(lunesSig.getDate()+1);
     let viernesSig = new Date(lunesSig); viernesSig.setDate(viernesSig.getDate() + (5 - lunesSig.getDay()));
     let c2 = new Date(lunesSig);
-    while (c2 <= viernesSig) {
-      if (!esFestivo(c2) && !esFinde(c2)) dias.push(new Date(c2));
-      c2.setDate(c2.getDate()+1);
-    }
+    while (c2 <= viernesSig) { if (!esFestivo(c2) && !esFinde(c2)) dias.push(new Date(c2)); c2.setDate(c2.getDate()+1); }
   }
   return dias;
 }
 
 function proximoSabado() {
   let hoy = new Date(); hoy.setHours(0,0,0,0);
-  let diff = (6 - hoy.getDay() + 7) % 7;
-  if (diff === 0) diff = 7;
+  let diff = (6 - hoy.getDay() + 7) % 7; if (diff === 0) diff = 7;
   let sab = new Date(hoy); sab.setDate(sab.getDate()+diff);
   if (esFestivo(sab)) sab.setDate(sab.getDate()+7);
   return sab;
@@ -170,9 +262,7 @@ function proximoSabado() {
 function generarSlotsCandidatos(tipoCita) {
   const horas = HORAS[tipoCita];
   const candidatos = [];
-  generarDiasLV().forEach(d => {
-    horas.lv.forEach(h => candidatos.push({ fecha: fmt(d), hora: h }));
-  });
+  generarDiasLV().forEach(d => horas.lv.forEach(h => candidatos.push({ fecha: fmt(d), hora: h })));
   if (horas.sab) {
     const sab = proximoSabado();
     horas.sab.forEach(h => candidatos.push({ fecha: fmt(sab), hora: h }));
@@ -183,17 +273,12 @@ function generarSlotsCandidatos(tipoCita) {
 async function cargarSlotsDisponibles(tipoCita) {
   const grid = document.getElementById('slotsGrid');
   grid.innerHTML = '<div class="slot-empty">Cargando horarios...</div>';
-
   const candidatos = generarSlotsCandidatos(tipoCita);
   const { data: ocupadas } = await db.from('franjas_ocupadas').select('fecha,hora').eq('tipo_cita', tipoCita);
   const ocupadasSet = new Set((ocupadas||[]).map(o => o.fecha + '_' + o.hora.slice(0,5)));
-
   const libres = candidatos.filter(c => !ocupadasSet.has(c.fecha + '_' + c.hora));
 
-  if (!libres.length) {
-    grid.innerHTML = '<div class="slot-empty">No hay horarios disponibles en este momento.</div>';
-    return;
-  }
+  if (!libres.length) { grid.innerHTML = '<div class="slot-empty">No hay horarios disponibles en este momento.</div>'; return; }
 
   grid.innerHTML = '';
   libres.forEach(slot => {
@@ -210,48 +295,48 @@ async function cargarSlotsDisponibles(tipoCita) {
   });
 }
 
-// ===================== SELECCION DE PROCESO =====================
+// ===== PASO 1 =====
 document.getElementById('opcionesProceso').addEventListener('click', (e) => {
-  const card = e.target.closest('.opcion-card');
-  if (!card) return;
+  const card = e.target.closest('.opcion-card'); if (!card) return;
   document.querySelectorAll('#opcionesProceso .opcion-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
   ESTADO.proceso = card.dataset.val;
   ESTADO.tipoDescargue = null;
   document.getElementById('campoTipoDescargue').classList.toggle('hidden', ESTADO.proceso !== 'Descargue');
-  document.getElementById('bloqueHorario').classList.add('hidden');
-  renderCamposRama();
+  document.querySelectorAll('#opcionesTipoDescargue .opcion-card').forEach(c => c.classList.remove('selected'));
 });
 
 document.getElementById('opcionesTipoDescargue').addEventListener('click', (e) => {
-  const card = e.target.closest('.opcion-card');
-  if (!card) return;
+  const card = e.target.closest('.opcion-card'); if (!card) return;
   document.querySelectorAll('#opcionesTipoDescargue .opcion-card').forEach(c => c.classList.remove('selected'));
   card.classList.add('selected');
   ESTADO.tipoDescargue = card.dataset.val;
-  renderCamposRama();
 });
 
+document.getElementById('btnSiguientePaso1').addEventListener('click', () => {
+  const err = document.getElementById('errorPaso1'); err.textContent = '';
+  if (!val('correo') || !val('empresa')) { err.textContent = 'Completa correo y nombre de la empresa.'; return; }
+  if (!ESTADO.proceso) { err.textContent = 'Selecciona el proceso a realizar.'; return; }
+  if (ESTADO.proceso === 'Descargue' && !ESTADO.tipoDescargue) { err.textContent = 'Selecciona el tipo de entrega.'; return; }
+  renderCamposRama();
+  irAPaso(2);
+});
+
+// ===== PASO 2 =====
 function renderCamposRama() {
   const cont = document.getElementById('camposRama');
-  const bloqueHorario = document.getElementById('bloqueHorario');
-  cont.innerHTML = '';
-  bloqueHorario.classList.add('hidden');
   ESTADO.tipoCita = null;
   ESTADO.slotSeleccionado = null;
 
   if (ESTADO.proceso === 'Cargue') {
     cont.innerHTML = `
       <div class="field"><label>Que Agente se va a cargar <span class="req">*</span></label><input id="r_agente" /></div>
-      <div class="field"><label>Nombre del conductor <span class="req">*</span></label><input id="r_conductor" /></div>
+      <div class="field"><label>Nombre del conductor <span class="req">*</span></label><input id="r_conductor" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
       <div class="field"><label>Cedula del conductor <span class="req">*</span></label><input id="r_cedula" /></div>
       <div class="field"><label>Placa del vehiculo <span class="req">*</span></label><input id="r_placa" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
     `;
     ESTADO.tipoCita = 'agentes';
-    bloqueHorario.classList.remove('hidden');
-    cargarSlotsDisponibles('agentes');
-
-  } else if (ESTADO.proceso === 'Descargue' && ESTADO.tipoDescargue === 'Importaciones') {
+  } else if (ESTADO.tipoDescargue === 'Importaciones') {
     cont.innerHTML = `
       <div class="field"><label>De que puerto proviene <span class="req">*</span></label>
         <select id="r_puerto"><option value="">Seleccione</option><option>Cartagena</option><option>Bogota</option><option>Buenaventura</option></select></div>
@@ -265,16 +350,18 @@ function renderCamposRama() {
       <div class="field"><label>Peso aproximado <span class="req">*</span></label><input id="r_peso" /></div>
     `;
     ESTADO.tipoCita = 'importaciones';
-    bloqueHorario.classList.remove('hidden');
-    cargarSlotsDisponibles('importaciones');
-
-  } else if (ESTADO.proceso === 'Descargue' && ESTADO.tipoDescargue === 'Proveedor') {
+  } else if (ESTADO.tipoDescargue === 'Proveedor') {
     cont.innerHTML = `
       <div class="field"><label>Placa del Vehiculo <span class="req">*</span></label><input id="r_placa" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
       <div class="field"><label>Tipo de Vehiculo <span class="req">*</span></label>
         <select id="r_tipo_vehiculo"><option value="">Seleccione</option><option>Contenedor de 40</option><option>Contenedor de 20</option><option>Turbo</option></select></div>
       <div class="field"><label>Numero de orden de compra <span class="req">*</span></label><input id="r_num_orden" /></div>
-      <div class="field"><label>Cargue el PDF de la orden de compra <span class="req">*</span></label><input id="r_pdf" type="file" accept="application/pdf" /></div>
+      <div class="field"><label>Cargue el PDF de la orden de compra <span class="req">*</span></label>
+        <div class="file-drop" id="dropPdf" onclick="document.getElementById('r_pdf').click()">
+          <span class="icono">📄</span><span id="dropPdfTexto">Click para subir el PDF</span>
+        </div>
+        <input id="r_pdf" type="file" accept="application/pdf" />
+      </div>
       <div class="field"><label>Numero/s de FEX <span class="req">*</span></label><input id="r_fex" /></div>
       <div class="field"><label>Peso aproximado <span class="req">*</span></label><input id="r_peso" /></div>
       <div class="field"><label>Volumetria M3 aproximado <span class="req">*</span></label><input id="r_volumetria" /></div>
@@ -283,51 +370,67 @@ function renderCamposRama() {
       <div class="field"><label>Cantidad de unidades por SKU <span class="req">*</span></label><input id="r_unidades" /></div>
     `;
     ESTADO.tipoCita = 'proveedor';
-    bloqueHorario.classList.remove('hidden');
-    cargarSlotsDisponibles('proveedor');
-
-  } else if (ESTADO.proceso === 'Descargue' && ESTADO.tipoDescargue === 'Planta') {
+    document.getElementById('r_pdf').addEventListener('change', (e) => {
+      if (e.target.files[0]) {
+        document.getElementById('dropPdf').classList.add('has-file');
+        document.getElementById('dropPdfTexto').textContent = '✓ ' + e.target.files[0].name;
+      }
+    });
+  } else if (ESTADO.tipoDescargue === 'Planta') {
     cont.innerHTML = `
       <div class="field"><label>Cantidad Pallets <span class="req">*</span></label><input id="r_pallets" /></div>
       <div class="field"><label>Numero de TR o FEX <span class="req">*</span></label><input id="r_tr_fex" /></div>
       <div class="field"><label>Placa del Vehiculo <span class="req">*</span></label><input id="r_placa" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
-      <div class="field"><label>Nombre del conductor <span class="req">*</span></label><input id="r_conductor" /></div>
+      <div class="field"><label>Nombre del conductor <span class="req">*</span></label><input id="r_conductor" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
     `;
     ESTADO.tipoCita = 'planta';
-    bloqueHorario.classList.remove('hidden');
-    cargarSlotsDisponibles('planta');
-
   } else if (ESTADO.proceso === 'Insumos') {
     cont.innerHTML = `
-      <div class="field"><label>Nombre del Proveedor <span class="req">*</span></label><input id="r_nombre_proveedor" /></div>
+      <div class="field"><label>Nombre del Proveedor <span class="req">*</span></label><input id="r_nombre_proveedor" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()" /></div>
       <div class="field"><label>Orden de Compra <span class="req">*</span></label><input id="r_orden_insumos" /></div>
       <div class="field"><label>Referencias <span class="req">*</span></label><textarea id="r_referencias"></textarea></div>
       <div class="field"><label>Cantidades <span class="req">*</span></label><textarea id="r_cantidades"></textarea></div>
       <div class="field"><label>Fecha estimada de llegada <span class="req">*</span></label><input id="r_fecha_llegada" type="date" /></div>
     `;
-    // Insumos no requiere horario de cita
   }
+  document.getElementById('btnSiguientePaso2').textContent = ESTADO.proceso === 'Insumos' ? 'Confirmar cita' : 'Continuar →';
+  renderProgreso();
 }
 
 function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 
-// ===================== ENVIO =====================
+document.getElementById('btnAtrasPaso2').addEventListener('click', () => irAPaso(1));
+
+document.getElementById('btnSiguientePaso2').addEventListener('click', async () => {
+  const err = document.getElementById('errorPaso2'); err.textContent = '';
+  if (ESTADO.tipoDescargue === 'Proveedor' && !document.getElementById('r_pdf').files[0]) {
+    err.textContent = 'Debes adjuntar el PDF de la orden de compra.'; return;
+  }
+  if (ESTADO.proceso === 'Insumos') {
+    await enviarFormulario();
+    return;
+  }
+  irAPaso(3);
+  cargarSlotsDisponibles(ESTADO.tipoCita);
+});
+
+document.getElementById('btnAtrasPaso3').addEventListener('click', () => irAPaso(2));
+
+// ===== PASO 3 / ENVIO =====
 document.getElementById('btnEnviar').addEventListener('click', async () => {
-  const errorMsg = document.getElementById('errorMsg');
-  errorMsg.textContent = '';
+  const err = document.getElementById('errorPaso3'); err.textContent = '';
+  if (!ESTADO.slotSeleccionado) { err.textContent = 'Selecciona un horario disponible.'; return; }
+  await enviarFormulario();
+});
 
-  const correo = val('correo');
-  const empresa = val('empresa');
-  if (!correo || !empresa) { errorMsg.textContent = 'Completa correo y nombre de la empresa.'; return; }
-  if (!ESTADO.proceso) { errorMsg.textContent = 'Selecciona el proceso a realizar.'; return; }
-  if (ESTADO.proceso === 'Descargue' && !ESTADO.tipoDescargue) { errorMsg.textContent = 'Selecciona el tipo de entrega.'; return; }
-  if (ESTADO.tipoCita && !ESTADO.slotSeleccionado) { errorMsg.textContent = 'Selecciona un horario disponible para tu cita.'; return; }
-
-  const btn = document.getElementById('btnEnviar');
+async function enviarFormulario() {
+  const errId = ESTADO.proceso === 'Insumos' ? 'errorPaso2' : 'errorPaso3';
+  const err = document.getElementById(errId);
+  const btn = ESTADO.proceso === 'Insumos' ? document.getElementById('btnSiguientePaso2') : document.getElementById('btnEnviar');
   btn.disabled = true; btn.textContent = 'Guardando...';
 
   try {
-    const payload = { correo, empresa, proceso: ESTADO.proceso, tipo_descargue: ESTADO.tipoDescargue };
+    const payload = { correo: val('correo'), empresa: val('empresa'), proceso: ESTADO.proceso, tipo_descargue: ESTADO.tipoDescargue };
 
     if (ESTADO.proceso === 'Cargue') {
       Object.assign(payload, { agente: val('r_agente'), conductor: val('r_conductor'), cedula_conductor: val('r_cedula'), placa: val('r_placa') });
@@ -336,12 +439,10 @@ document.getElementById('btnEnviar').addEventListener('click', async () => {
         numero_contenedor: val('r_num_contenedor'), numero_pedido: val('r_num_pedido'), volumetria_m3: val('r_volumetria'),
         numero_fex: val('r_fex'), peso_aproximado: val('r_peso') });
     } else if (ESTADO.tipoDescargue === 'Proveedor') {
-      const fileInput = document.getElementById('r_pdf');
-      if (!fileInput.files[0]) throw new Error('Debes adjuntar el PDF de la orden de compra.');
+      ESTADO.archivoOrden = document.getElementById('r_pdf').files[0];
       Object.assign(payload, { placa: val('r_placa'), tipo_vehiculo: val('r_tipo_vehiculo'), numero_orden_compra: val('r_num_orden'),
         numero_fex: val('r_fex'), peso_aproximado: val('r_peso'), volumetria_m3: val('r_volumetria'),
         numero_sku: val('r_sku'), numero_cajas_sku: val('r_cajas'), cantidad_unidades_sku: val('r_unidades') });
-      ESTADO.archivoOrden = fileInput.files[0];
     } else if (ESTADO.tipoDescargue === 'Planta') {
       Object.assign(payload, { cantidad_pallets: val('r_pallets'), numero_tr_fex: val('r_tr_fex'), placa: val('r_placa'), conductor: val('r_conductor') });
     } else if (ESTADO.proceso === 'Insumos') {
@@ -349,10 +450,7 @@ document.getElementById('btnEnviar').addEventListener('click', async () => {
         referencias: val('r_referencias'), cantidades: val('r_cantidades'), fecha_estimada_llegada: val('r_fecha_llegada') || null });
     }
 
-    if (ESTADO.slotSeleccionado) {
-      payload.fecha_cita = ESTADO.slotSeleccionado.fecha;
-      payload.hora_cita = ESTADO.slotSeleccionado.hora;
-    }
+    if (ESTADO.slotSeleccionado) { payload.fecha_cita = ESTADO.slotSeleccionado.fecha; payload.hora_cita = ESTADO.slotSeleccionado.hora; }
 
     const { data: cita, error: errCita } = await db.from('citas').insert(payload).select().single();
     if (errCita) throw errCita;
@@ -363,36 +461,36 @@ document.getElementById('btnEnviar').addEventListener('click', async () => {
       });
       if (errFranja) {
         await db.from('citas').delete().eq('id', cita.id);
-        throw new Error('Ese horario acaba de ser tomado por otra persona. Por favor selecciona otro horario disponible.');
+        throw new Error('Ese horario acaba de ser tomado por otra persona. Elige otro horario.');
       }
     }
 
     if (ESTADO.archivoOrden) {
       const path = `ordenes_compra/${cita.id}_${ESTADO.archivoOrden.name}`;
-      const { error: errUp } = await db.storage.from('citas').upload(path, ESTADO.archivoOrden);
-      if (!errUp) {
-        await db.from('citas').update({ storage_path_orden_compra: path }).eq('id', cita.id);
-      }
+      const { error: errUp } = await db.storage.from('citas').upload(path, ESTADO.archivoOrden, { upsert: true });
+      if (!errUp) await db.from('citas').update({ storage_path_orden_compra: path }).eq('id', cita.id);
     }
 
     mostrarConfirmacion(cita);
-  } catch (err) {
-    errorMsg.textContent = 'Error: ' + err.message;
-    if (ESTADO.tipoCita) cargarSlotsDisponibles(ESTADO.tipoCita);
+  } catch (e) {
+    err.textContent = 'Error: ' + e.message;
+    if (ESTADO.tipoCita && ESTADO.proceso !== 'Insumos') cargarSlotsDisponibles(ESTADO.tipoCita);
   } finally {
-    btn.disabled = false; btn.textContent = 'Confirmar cita';
+    btn.disabled = false; btn.textContent = ESTADO.proceso === 'Insumos' ? 'Confirmar cita' : 'Confirmar cita';
   }
-});
+}
 
 function mostrarConfirmacion(cita) {
   document.getElementById('panelForm').classList.add('hidden');
+  document.getElementById('progresoBar').classList.add('hidden');
   document.getElementById('panelConfirmacion').classList.remove('hidden');
-  let html = `<div><b>Empresa:</b> ${cita.empresa}</div><div><b>Correo:</b> ${cita.correo}</div><div><b>Proceso:</b> ${cita.proceso}${cita.tipo_descargue ? ' - ' + cita.tipo_descargue : ''}</div>`;
-  if (cita.fecha_cita) html += `<div><b>Fecha de cita:</b> ${cita.fecha_cita}</div><div><b>Hora:</b> ${cita.hora_cita}</div>`;
-  if (cita.placa) html += `<div><b>Placa:</b> ${cita.placa}</div>`;
+  let html = `<div><span>Empresa</span><b>${cita.empresa}</b></div><div><span>Correo</span><b>${cita.correo}</b></div><div><span>Proceso</span><b>${cita.proceso}${cita.tipo_descargue ? ' - ' + cita.tipo_descargue : ''}</b></div>`;
+  if (cita.fecha_cita) html += `<div><span>Fecha</span><b>${cita.fecha_cita}</b></div><div><span>Hora</span><b>${cita.hora_cita}</b></div>`;
+  if (cita.placa) html += `<div><span>Placa</span><b>${cita.placa}</b></div>`;
   document.getElementById('resumenFinal').innerHTML = html;
 }
 
+renderProgreso();
 cargarFestivos();
 </script>
 </body>
