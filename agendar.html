@@ -471,7 +471,7 @@ async function enviarFormulario() {
 
     if (ESTADO.archivoOrden) {
       const path = `ordenes_compra/${cita.id}_${ESTADO.archivoOrden.name}`;
-      const { error: errUp } = await db.storage.from('citas').upload(path, ESTADO.archivoOrden, { upsert: true });
+      const { error: errUp } = await db.storage.from('citas').upload(path, ESTADO.archivoOrden);
       if (!errUp) await db.from('citas').update({ storage_path_orden_compra: path }).eq('id', cita.id);
     }
 
