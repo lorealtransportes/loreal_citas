@@ -423,6 +423,7 @@ document.getElementById('btnEnviar').addEventListener('click', async () => {
   await enviarFormulario();
 });
 
+
 async function enviarFormulario() {
   const errId = ESTADO.proceso === 'Insumos' ? 'errorPaso2' : 'errorPaso3';
   const err = document.getElementById(errId);
@@ -430,7 +431,8 @@ async function enviarFormulario() {
   btn.disabled = true; btn.textContent = 'Guardando...';
 
   try {
-    const payload = { correo: val('correo'), empresa: val('empresa'), proceso: ESTADO.proceso, tipo_descargue: ESTADO.tipoDescargue };
+    const nuevoId = crypto.randomUUID(); // 👈 NUEVO
+    const payload = { id: nuevoId, correo: val('correo'), empresa: val('empresa'), proceso: ESTADO.proceso, tipo_descargue: ESTADO.tipoDescargue }; // 👈 agregado id
 
     if (ESTADO.proceso === 'Cargue') {
       Object.assign(payload, { agente: val('r_agente'), conductor: val('r_conductor'), cedula_conductor: val('r_cedula'), placa: val('r_placa') });
@@ -452,8 +454,10 @@ async function enviarFormulario() {
 
     if (ESTADO.slotSeleccionado) { payload.fecha_cita = ESTADO.slotSeleccionado.fecha; payload.hora_cita = ESTADO.slotSeleccionado.hora; }
 
-    const { data: cita, error: errCita } = await db.from('citas').insert(payload).select().single();
+    const { error: errCita } = await db.from('citas').insert(payload); // 👈 sin .select().single()
     if (errCita) throw errCita;
+
+    const cita = payload; // 👈 usamos el objeto local, ya tiene el id y todos los datos
 
     if (ESTADO.tipoCita && ESTADO.slotSeleccionado) {
       const { error: errFranja } = await db.from('franjas_ocupadas').insert({
@@ -476,9 +480,10 @@ async function enviarFormulario() {
     err.textContent = 'Error: ' + e.message;
     if (ESTADO.tipoCita && ESTADO.proceso !== 'Insumos') cargarSlotsDisponibles(ESTADO.tipoCita);
   } finally {
-    btn.disabled = false; btn.textContent = ESTADO.proceso === 'Insumos' ? 'Confirmar cita' : 'Confirmar cita';
+    btn.disabled = false; btn.textContent = 'Confirmar cita';
   }
 }
+
 
 function mostrarConfirmacion(cita) {
   document.getElementById('panelForm').classList.add('hidden');
