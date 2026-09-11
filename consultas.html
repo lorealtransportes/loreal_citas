@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Consulta de Citas | L'Oreal Operations</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:'Inter',sans-serif; background:#f4f4f4; padding:20px; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+  h1 { font-size:20px; margin:0; }
+  button.logout { background:#1a1a1a; color:#fff; border:0; border-radius:10px; padding:9px 14px; cursor:pointer; font-weight:700; }
+  .filtros { background:#fff; border-radius:14px; padding:16px; display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; align-items:end; }
+  .filtros .campo { display:flex; flex-direction:column; gap:4px; }
+  .filtros label { font-size:11.5px; font-weight:700; color:#555; }
+  .filtros input, .filtros select { border:1.5px solid #ddd; border-radius:9px; padding:8px 10px; font-size:13px; }
+  .filtros button { border:0; border-radius:10px; padding:10px 16px; font-weight:800; cursor:pointer; }
+  .btn-buscar { background:#c9a84c; }
+  .btn-exportar { background:#16a34a; color:#fff; }
+  .btn-limpiar { background:#e0e0e0; }
+  .tabla-wrap { background:#fff; border-radius:14px; overflow:auto; max-height:70vh; }
+  table { border-collapse:collapse; width:100%; font-size:12.5px; white-space:nowrap; }
+  th, td { padding:8px 10px; border-bottom:1px solid #eee; text-align:left; }
+  th { background:#1a1a1a; color:#c9a84c; position:sticky; top:0; z-index:1; }
+  tr:hover td { background:#fdf8ed; }
+  .pdf-link { color:#2563eb; font-weight:700; cursor:pointer; text-decoration:underline; }
+  .info-count { font-size:12.5px; color:#666; margin-bottom:8px; }
+  .badge { padding:3px 8px; border-radius:8px; font-weight:700; font-size:11px; }
+  .badge.confirmada { background:#dcfce7; color:#166534; }
+  .badge.cancelada { background:#fee2e2; color:#991b1b; }
+  .badge.pendiente { background:#fef9c3; color:#854d0e; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>📋 Consulta de Citas</h1>
+  <button class="logout" id="btnLogout">Cerrar sesión</button>
+</div>
+
+<div class="filtros">
+  <div class="campo"><label>Desde</label><input type="date" id="f_desde" /></div>
+  <div class="campo"><label>Hasta</label><input type="date" id="f_hasta" /></div>
+  <div class="campo"><label>Proceso</label>
+    <select id="f_proceso">
+      <option value="">Todos</option>
+      <option>Cargue</option>
+      <option>Descargue</option>
+      <option>Insumos</option>
+    </select>
+  </div>
+  <div class="campo"><label>Estado</label>
+    <select id="f_estado">
+      <option value="">Todos</option>
+      <option>confirmada</option>
+      <option>pendiente</option>
+      <option>cancelada</option>
+    </select>
+  </div>
+  <div class="campo"><label>Empresa</label><input type="text" id="f_empresa" placeholder="Nombre empresa" /></div>
+  <div class="campo"><label>Correo</label><input type="text" id="f_correo" placeholder="correo@..." /></div>
+  <div class="campo"><label>Placa</label><input type="text" id="f_placa" placeholder="Placa" /></div>
+  <button class="btn-buscar" id="btnBuscar">🔍 Buscar</button>
+  <button class="btn-limpiar" id="btnLimpiar">Limpiar</button>
+  <button class="btn-exportar" id="btnExportar">⬇ Exportar a Excel</button>
+</div>
+
+<div class="info-count" id="infoCount"></div>
+<div class="tabla-wrap">
+  <table id="tabla">
+    <thead><tr id="theadRow"></tr></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<script>
+const SUPABASE_URL = "https://rejjjlkptibdhozlnnlt.supabase.co";
+const SUPABASE_ANON_KEY = "TU_ANON_KEY_AQUI";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const COLUMNAS = [
+  { key:'creado_en', label:'Registrado' },
+  { key:'estado', label:'Estado' },
+  { key:'fecha_cita', label:'Fecha cita' },
+  { key:'hora_cita', label:'Hora' },
+  { key:'empresa', label:'Empresa' },
+  { key:'correo', label:'Correo' },
+  { key:'proceso', label:'Proceso' },
+  { key:'tipo_descargue', label:'Tipo entrega' },
+  { key:'agente', label:'Agente' },
+  { key:'conductor', label:'Conductor' },
+  { key:'cedula_conductor', label:'Cédula conductor' },
+  { key:'placa', label:'Placa' },
+  { key:'puerto', label:'Puerto' },
+  { key:'tipo_vehiculo', label:'Tipo vehículo' },
+  { key:'numero_contenedor', label:'N° contenedor' },
+  { key:'numero_pedido', label:'N° pedido' },
+  { key:'volumetria_m3', label:'Volumetría m3' },
+  { key:'numero_fex', label:'N° FEX' },
+  { key:'peso_aproximado', label:'Peso aprox' },
+  { key:'numero_orden_compra', label:'N° orden compra' },
+  { key:'numero_sku', label:'N° SKU' },
+  { key:'numero_cajas_sku', label:'N° cajas SKU' },
+  { key:'cantidad_unidades_sku', label:'Unidades SKU' },
+  { key:'cantidad_pallets', label:'Pallets' },
+  { key:'numero_tr_fex', label:'N° TR/FEX' },
+  { key:'nombre_proveedor', label:'Proveedor (insumos)' },
+  { key:'orden_compra_insumos', label:'Orden compra (insumos)' },
+  { key:'referencias', label:'Referencias' },
+  { key:'cantidades', label:'Cantidades' },
+  { key:'fecha_estimada_llegada', label:'Fecha est. llegada' },
+  { key:'pdf', label:'Orden de compra (PDF)' },
+];
+
+let FILAS = [];
+
+async function requireAuth() {
+  const { data } = await db.auth.getSession();
+  if (!data.session) window.location.href = "login.html";
+}
+requireAuth();
+
+document.getElementById('btnLogout').addEventListener('click', async () => {
+  await db.auth.signOut();
+  window.location.href = "login.html";
+});
+
+function renderHead() {
+  document.getElementById('theadRow').innerHTML = COLUMNAS.map(c => `<th>${c.label}</th>`).join('');
+}
+
+async function buscar() {
+  document.getElementById('infoCount').textContent = 'Buscando...';
+  let q = db.from('citas').select('*').order('creado_en', { ascending: false });
+
+  const desde = document.getElementById('f_desde').value;
+  const hasta = document.getElementById('f_hasta').value;
+  const proceso = document.getElementById('f_proceso').value;
+  const estado = document.getElementById('f_estado').value;
+  const empresa = document.getElementById('f_empresa').value.trim();
+  const correo = document.getElementById('f_correo').value.trim();
+  const placa = document.getElementById('f_placa').value.trim();
+
+  if (desde) q = q.gte('fecha_cita', desde);
+  if (hasta) q = q.lte('fecha_cita', hasta);
+  if (proceso) q = q.eq('proceso', proceso);
+  if (estado) q = q.eq('estado', estado);
+  if (empresa) q = q.ilike('empresa', `%${empresa}%`);
+  if (correo) q = q.ilike('correo', `%${correo}%`);
+  if (placa) q = q.ilike('placa', `%${placa}%`);
+
+  const { data, error } = await q.limit(2000);
+  if (error) { document.getElementById('infoCount').textContent = 'Error: ' + error.message; return; }
+
+  for (const fila of data) {
+    if (fila.storage_path_orden_compra) {
+      const { data: signed } = await db.storage.from('citas').createSignedUrl(fila.storage_path_orden_compra, 3600);
+      fila._pdf_url = signed ? signed.signedUrl : null;
+    } else {
+      fila._pdf_url = null;
+    }
+  }
+
+  FILAS = data;
+  renderTabla(data);
+  document.getElementById('infoCount').textContent = `${data.length} resultado(s) encontrado(s).`;
+}
+
+function renderTabla(data) {
+  const tbody = document.getElementById('tbody');
+  if (!data.length) { tbody.innerHTML = `<tr><td colspan="${COLUMNAS.length}">Sin resultados.</td></tr>`; return; }
+
+  tbody.innerHTML = data.map(fila => {
+    const celdas = COLUMNAS.map(c => {
+      if (c.key === 'pdf') {
+        return fila._pdf_url
+          ? `<td><span class="pdf-link" onclick="window.open('${fila._pdf_url}','_blank')">📄 Ver PDF</span></td>`
+          : `<td>-</td>`;
+      }
+      if (c.key === 'estado') {
+        const est = fila.estado || 'pendiente';
+        return `<td><span class="badge ${est}">${est}</span></td>`;
+      }
+      const val = fila[c.key];
+      return `<td>${val !== null && val !== undefined ? val : '-'}</td>`;
+    }).join('');
+    return `<tr>${celdas}</tr>`;
+  }).join('');
+}
+
+function exportarExcel() {
+  if (!FILAS.length) { alert('No hay datos para exportar. Realiza una búsqueda primero.'); return; }
+  const filasExport = FILAS.map(fila => {
+    const obj = {};
+    COLUMNAS.forEach(c => {
+      if (c.key === 'pdf') { obj[c.label] = fila._pdf_url || ''; }
+      else { obj[c.label] = fila[c.key] ?? ''; }
+    });
+    return obj;
+  });
+  const ws = XLSX.utils.json_to_sheet(filasExport);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Citas");
+  const fecha = new Date().toISOString().slice(0,10);
+  XLSX.writeFile(wb, `citas_export_${fecha}.xlsx`);
+}
+
+document.getElementById('btnBuscar').addEventListener('click', buscar);
+document.getElementById('btnExportar').addEventListener('click', exportarExcel);
+document.getElementById('btnLimpiar').addEventListener('click', () => {
+  document.querySelectorAll('.filtros input, .filtros select').forEach(el => el.value = '');
+  buscar();
+});
+
+renderHead();
+buscar();
+</script>
+</body>
+</html>
