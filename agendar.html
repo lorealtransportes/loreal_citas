@@ -20,35 +20,24 @@
     padding:30px 16px 60px;
   }
   .page { width:min(760px, 100%); }
-
   .top { text-align:center; margin-bottom:26px; animation:fadeDown .6s ease; }
   .top img.logo { width:170px; margin-bottom:10px; }
   .top .division { color:rgba(255,255,255,.4); font-size:10px; letter-spacing:4px; text-transform:uppercase; font-weight:700; }
   .top h1 { color:#fff; font-size:22px; font-weight:800; margin:10px 0 4px; }
   .top p { color:var(--amber); font-size:12px; font-weight:600; letter-spacing:.4px; }
-
-  /* Barra de progreso */
   .progreso { display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:24px; }
   .progreso .paso-dot { width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.15); transition:all .3s; }
   .progreso .paso-dot.activo { background:var(--amber); width:26px; border-radius:6px; }
   .progreso .paso-dot.hecho { background:var(--green); }
-
-  .panel {
-    background:#fff; border-radius:22px; padding:30px 28px;
-    box-shadow:0 20px 50px rgba(0,0,0,.35);
-    animation:fadeUp .45s ease;
-  }
+  .panel { background:#fff; border-radius:22px; padding:30px 28px; box-shadow:0 20px 50px rgba(0,0,0,.35); animation:fadeUp .45s ease; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(18px);} to { opacity:1; transform:translateY(0);} }
   @keyframes fadeDown { from { opacity:0; transform:translateY(-14px);} to { opacity:1; transform:translateY(0);} }
   @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
   @keyframes popIn { from { opacity:0; transform:scale(.85);} to { opacity:1; transform:scale(1);} }
-
   .step { display:none; animation:fadeIn .35s ease; }
   .step.activo { display:block; }
-
   .step-title { font-size:16px; font-weight:800; color:var(--black); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
   .step-title .num { background:var(--black); color:var(--amber); width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; }
-
   .field { margin-bottom:16px; }
   label { display:block; font-size:12.5px; font-weight:700; color:#444; margin-bottom:6px; }
   input, select, textarea {
@@ -57,7 +46,6 @@
   }
   input:focus, select:focus, textarea:focus { outline:none; border-color:var(--amber); background:#fff; }
   textarea { min-height:80px; resize:vertical; }
-
   .opciones-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
   .opcion-card {
     border:2px solid var(--line); border-radius:16px; padding:20px 12px; text-align:center; cursor:pointer;
@@ -67,21 +55,17 @@
   .opcion-card:hover { border-color:var(--amber); transform:translateY(-3px); box-shadow:0 8px 20px rgba(201,168,76,.2); }
   .opcion-card.selected { border-color:var(--amber); background:var(--amber-lt); box-shadow:0 8px 20px rgba(201,168,76,.25); }
   .opcion-card.selected::after { content:"✓"; position:absolute; top:8px; right:10px; color:var(--green); font-weight:900; font-size:15px; }
-
   .slots-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:9px; max-height:280px; overflow-y:auto; padding:4px; }
   .slot-btn { border:1.5px solid var(--line); border-radius:11px; padding:11px 8px; text-align:center; font-size:12.5px; font-weight:700; cursor:pointer; background:#fafafa; transition:all .15s; }
   .slot-btn:hover { border-color:var(--amber); transform:scale(1.03); }
   .slot-btn.selected { background:var(--black); border-color:var(--black); color:var(--amber); }
   .slot-empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:24px; font-weight:600; }
-
   .botones-nav { display:flex; gap:10px; margin-top:22px; }
   button.btn { flex:1; border:0; border-radius:13px; padding:15px; font-size:14.5px; font-weight:800; cursor:pointer; background:var(--amber); color:#1a1a1a; transition:opacity .15s, transform .1s; }
   button.btn:hover:not(:disabled) { opacity:.88; transform:scale(1.01); }
   button.btn:disabled { opacity:.5; cursor:not-allowed; }
   button.btn-atras { background:var(--line); color:var(--black); flex:0 0 110px; }
-
   .error-msg { color:var(--red); font-size:12.5px; font-weight:700; margin:10px 0; text-align:center; animation:popIn .25s ease; }
-
   .confirmacion { text-align:center; padding:20px 10px; }
   .check-anim { width:80px; height:80px; border-radius:50%; background:var(--amber-lt); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; animation:popIn .5s ease; }
   .check-anim span { font-size:40px; color:var(--green); }
@@ -91,10 +75,8 @@
   .resumen div { margin-bottom:8px; display:flex; justify-content:space-between; gap:10px; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:6px; }
   .resumen div:last-child { border-bottom:0; }
   .resumen b { color:var(--amber); font-weight:700; }
-
   .req { color:var(--red); }
   .hidden { display:none !important; }
-
   .file-drop { border:2px dashed var(--line); border-radius:14px; padding:22px; text-align:center; cursor:pointer; transition:border-color .15s, background .15s; }
   .file-drop:hover { border-color:var(--amber); background:var(--amber-lt); }
   .file-drop.has-file { border-color:var(--green); background:#f0fdf4; }
@@ -115,7 +97,6 @@
 
   <div class="panel" id="panelForm">
 
-    <!-- PASO 1: Datos generales -->
     <div class="step activo" data-step="1">
       <div class="step-title"><span class="num">1</span> Datos generales</div>
       <div class="field">
@@ -148,7 +129,6 @@
       </div>
     </div>
 
-    <!-- PASO 2: Campos especificos de la rama -->
     <div class="step" data-step="2">
       <div class="step-title"><span class="num">2</span> Detalles del vehiculo / entrega</div>
       <div id="camposRama"></div>
@@ -159,7 +139,6 @@
       </div>
     </div>
 
-    <!-- PASO 3: Horario -->
     <div class="step" data-step="3">
       <div class="step-title"><span class="num">3</span> Selecciona tu horario</div>
       <div class="slots-grid" id="slotsGrid"><div class="slot-empty">Cargando horarios...</div></div>
@@ -201,7 +180,7 @@ let ESTADO = { proceso:null, tipoDescargue:null, tipoCita:null, slotSeleccionado
 let FESTIVOS = [];
 
 const TOTAL_PASOS_CON_HORARIO = 3;
-const TOTAL_PASOS_SIN_HORARIO = 2; // Insumos no tiene paso de horario
+const TOTAL_PASOS_SIN_HORARIO = 2;
 
 function totalPasos() { return ESTADO.proceso === 'Insumos' ? TOTAL_PASOS_SIN_HORARIO : TOTAL_PASOS_CON_HORARIO; }
 
@@ -295,7 +274,6 @@ async function cargarSlotsDisponibles(tipoCita) {
   });
 }
 
-// ===== PASO 1 =====
 document.getElementById('opcionesProceso').addEventListener('click', (e) => {
   const card = e.target.closest('.opcion-card'); if (!card) return;
   document.querySelectorAll('#opcionesProceso .opcion-card').forEach(c => c.classList.remove('selected'));
@@ -322,7 +300,6 @@ document.getElementById('btnSiguientePaso1').addEventListener('click', () => {
   irAPaso(2);
 });
 
-// ===== PASO 2 =====
 function renderCamposRama() {
   const cont = document.getElementById('camposRama');
   ESTADO.tipoCita = null;
@@ -399,6 +376,14 @@ function renderCamposRama() {
 
 function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
 
+// 👇 NUEVO: función para limpiar nombres de archivo antes de subirlos a Storage
+function limpiarNombreArchivo(nombre) {
+  return nombre
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quita tildes/acentos
+    .replace(/[^a-zA-Z0-9._-]/g, '_')                  // reemplaza caracteres no permitidos por "_"
+    .replace(/_+/g, '_');                              // colapsa múltiples "_" seguidos
+}
+
 document.getElementById('btnAtrasPaso2').addEventListener('click', () => irAPaso(1));
 
 document.getElementById('btnSiguientePaso2').addEventListener('click', async () => {
@@ -416,13 +401,11 @@ document.getElementById('btnSiguientePaso2').addEventListener('click', async () 
 
 document.getElementById('btnAtrasPaso3').addEventListener('click', () => irAPaso(2));
 
-// ===== PASO 3 / ENVIO =====
 document.getElementById('btnEnviar').addEventListener('click', async () => {
   const err = document.getElementById('errorPaso3'); err.textContent = '';
   if (!ESTADO.slotSeleccionado) { err.textContent = 'Selecciona un horario disponible.'; return; }
   await enviarFormulario();
 });
-
 
 async function enviarFormulario() {
   const errId = ESTADO.proceso === 'Insumos' ? 'errorPaso2' : 'errorPaso3';
@@ -431,8 +414,8 @@ async function enviarFormulario() {
   btn.disabled = true; btn.textContent = 'Guardando...';
 
   try {
-    const nuevoId = crypto.randomUUID(); // 👈 NUEVO
-    const payload = { id: nuevoId, correo: val('correo'), empresa: val('empresa'), proceso: ESTADO.proceso, tipo_descargue: ESTADO.tipoDescargue }; // 👈 agregado id
+    const nuevoId = crypto.randomUUID();
+    const payload = { id: nuevoId, correo: val('correo'), empresa: val('empresa'), proceso: ESTADO.proceso, tipo_descargue: ESTADO.tipoDescargue };
 
     if (ESTADO.proceso === 'Cargue') {
       Object.assign(payload, { agente: val('r_agente'), conductor: val('r_conductor'), cedula_conductor: val('r_cedula'), placa: val('r_placa') });
@@ -454,10 +437,10 @@ async function enviarFormulario() {
 
     if (ESTADO.slotSeleccionado) { payload.fecha_cita = ESTADO.slotSeleccionado.fecha; payload.hora_cita = ESTADO.slotSeleccionado.hora; }
 
-    const { error: errCita } = await db.from('citas').insert(payload); // 👈 sin .select().single()
+    const { error: errCita } = await db.from('citas').insert(payload);
     if (errCita) throw errCita;
 
-    const cita = payload; // 👈 usamos el objeto local, ya tiene el id y todos los datos
+    const cita = payload;
 
     if (ESTADO.tipoCita && ESTADO.slotSeleccionado) {
       const { error: errFranja } = await db.from('franjas_ocupadas').insert({
@@ -470,9 +453,14 @@ async function enviarFormulario() {
     }
 
     if (ESTADO.archivoOrden) {
-      const path = `ordenes_compra/${cita.id}_${ESTADO.archivoOrden.name}`;
+      const nombreLimpio = limpiarNombreArchivo(ESTADO.archivoOrden.name); // 👈 corrección aplicada aquí
+      const path = `ordenes_compra/${cita.id}_${nombreLimpio}`;
       const { error: errUp } = await db.storage.from('citas').upload(path, ESTADO.archivoOrden);
-      if (!errUp) await db.from('citas').update({ storage_path_orden_compra: path }).eq('id', cita.id);
+      if (!errUp) {
+        await db.from('citas').update({ storage_path_orden_compra: path }).eq('id', cita.id);
+      } else {
+        console.error('Error subiendo PDF:', errUp.message);
+      }
     }
 
     mostrarConfirmacion(cita);
@@ -483,7 +471,6 @@ async function enviarFormulario() {
     btn.disabled = false; btn.textContent = 'Confirmar cita';
   }
 }
-
 
 function mostrarConfirmacion(cita) {
   document.getElementById('panelForm').classList.add('hidden');
