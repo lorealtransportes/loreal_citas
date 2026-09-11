@@ -178,17 +178,21 @@ async function buscar() {
   document.getElementById('infoCount').textContent = `${data.length} resultado(s) encontrado(s).`;
 }
 
-function renderTabla(data) {
+ function renderTabla(data) {
   const tbody = document.getElementById('tbody');
   if (!data.length) { tbody.innerHTML = `<tr><td colspan="${COLUMNAS.length}">Sin resultados.</td></tr>`; return; }
 
   tbody.innerHTML = data.map(fila => {
     const celdas = COLUMNAS.map(c => {
-      if (c.key === 'pdf') {
-        return fila._pdf_url
-          ? `<td><span class="pdf-link" onclick="window.open('${fila._pdf_url}','_blank')">📄 Ver PDF</span></td>`
-          : `<td>-</td>`;
-      }
+      
+  if (c.key === 'pdf') {
+  if (!fila._pdfs || !fila._pdfs.length) return `<td>-</td>`;
+  const links = fila._pdfs.map((p, i) =>
+    `<span class="pdf-link" onclick="window.open('${p.url}','_blank')">📄 PDF ${i+1}</span>`
+  ).join(' | ');
+  return `<td>${links}</td>`;
+ }
+
       if (c.key === 'estado') {
         const est = fila.estado || 'pendiente';
         return `<td><span class="badge ${est}">${est}</span></td>`;
