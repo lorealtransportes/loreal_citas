@@ -391,10 +391,11 @@ function limpiarNombreArchivo(nombre) {
 
 document.getElementById('btnAtrasPaso2').addEventListener('click', () => irAPaso(1));
 
+
 document.getElementById('btnSiguientePaso2').addEventListener('click', async () => {
   const err = document.getElementById('errorPaso2'); err.textContent = '';
-  if (ESTADO.tipoDescargue === 'Proveedor' && !document.getElementById('r_pdf').files[0]) {
-    err.textContent = 'Debes adjuntar el PDF de la orden de compra.'; return;
+  if (ESTADO.tipoDescargue === 'Proveedor' && document.getElementById('r_pdf').files.length === 0) {
+    err.textContent = 'Debes adjuntar al menos un PDF de la orden de compra.'; return;
   }
   if (ESTADO.proceso === 'Insumos') {
     await enviarFormulario();
@@ -403,6 +404,7 @@ document.getElementById('btnSiguientePaso2').addEventListener('click', async () 
   irAPaso(3);
   cargarSlotsDisponibles(ESTADO.tipoCita);
 });
+
 
 document.getElementById('btnAtrasPaso3').addEventListener('click', () => irAPaso(2));
 
