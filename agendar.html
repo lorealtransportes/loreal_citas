@@ -459,16 +459,27 @@ async function enviarFormulario() {
       }
     }
 
-    if (ESTADO.archivoOrden) {
-      const nombreLimpio = limpiarNombreArchivo(ESTADO.archivoOrden.name); // 👈 corrección aplicada aquí
-      const path = `ordenes_compra/${cita.id}_${nombreLimpio}`;
-      const { error: errUp } = await db.storage.from('citas').upload(path, ESTADO.archivoOrden);
-      if (!errUp) {
-        await db.from('citas').update({ storage_path_orden_compra: path }).eq('id', cita.id);
-      } else {
-        console.error('Error subiendo PDF:', errUp.message);
-      }
+    
+  if (ESTADO.archivosOrden && ESTADO.archivosOrden.length > 0) {
+  const fechaCarpeta = ESTADO.slotSeleccionado ? ESTADO.slotSeleccionado.fecha : new Date().toISOString().slice(0,10); // 👈 carpeta por fecha de la cita
+
+  for (const archivo of ESTADO.archivosOrden) {
+    const nombreLimpio = limpiarNombreArchivo(archivo.name);
+    const path = `ordenes_compra/${fechaCarpeta}/${cita.id}_${nombreLimpio}`;
+
+    const { error: errUp } = await db.storage.from('citas').upload(path, archivo);
+    if (!errUp) {
+      await db.from('citas_archivos').insert({
+        cita_id: cita.id,
+        storage_path: path,
+        nombre_original: archivo.name
+      });
+    } else {
+      console.error('Error subiendo PDF:', archivo.name, errUp.message);
     }
+  }
+}
+
 
     mostrarConfirmacion(cita);
   } catch (e) {
