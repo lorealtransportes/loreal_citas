@@ -347,12 +347,17 @@ function renderCamposRama() {
       <div class="field"><label>Cantidad de unidades por SKU <span class="req">*</span></label><input id="r_unidades" /></div>
     `;
     ESTADO.tipoCita = 'proveedor';
-    document.getElementById('r_pdf').addEventListener('change', (e) => {
-      if (e.target.files[0]) {
-        document.getElementById('dropPdf').classList.add('has-file');
-        document.getElementById('dropPdfTexto').textContent = '✓ ' + e.target.files[0].name;
-      }
-    });
+   
+  document.getElementById('r_pdf').addEventListener('change', (e) => {
+  if (e.target.files.length > 0) {
+    document.getElementById('dropPdf').classList.add('has-file');
+    const n = e.target.files.length;
+    document.getElementById('dropPdfTexto').textContent = n === 1
+      ? '✓ ' + e.target.files[0].name
+      : `✓ ${n} archivos seleccionados`;
+  }
+});
+
   } else if (ESTADO.tipoDescargue === 'Planta') {
     cont.innerHTML = `
       <div class="field"><label>Cantidad Pallets <span class="req">*</span></label><input id="r_pallets" /></div>
