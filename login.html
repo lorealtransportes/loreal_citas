@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Acceso Administrador | L'Oreal Operations</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --black:#1a1a1a; --amber:#c9a84c; --amber-lt:#fdf8ed; --red:#dc2626; --line:#e0e0e0; }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; min-height:100vh;
+    background: radial-gradient(circle at top, #232323 0%, #000000 75%);
+    font-family:'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .page { width:min(400px, 100%); }
+
+  .top { text-align:center; margin-bottom:26px; animation:fadeDown .6s ease; }
+  .top img.logo { width:170px; margin-bottom:10px; }
+  .top .division { color:rgba(255,255,255,.4); font-size:10px; letter-spacing:4px; text-transform:uppercase; font-weight:700; }
+  .top h1 { color:#fff; font-size:20px; font-weight:800; margin:10px 0 4px; }
+  .top p { color:var(--amber); font-size:12px; font-weight:600; letter-spacing:.4px; }
+
+  .panel {
+    background:#fff; border-radius:22px; padding:32px 28px;
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+    animation:fadeUp .45s ease;
+  }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(18px);} to { opacity:1; transform:translateY(0);} }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-14px);} to { opacity:1; transform:translateY(0);} }
+
+  .field { margin-bottom:16px; }
+  label { display:block; font-size:12.5px; font-weight:700; color:#444; margin-bottom:6px; }
+  input {
+    width:100%; border:1.5px solid var(--line); border-radius:12px; padding:12px 14px;
+    font-size:14px; font-family:inherit; background:#fafafa; transition:border-color .15s, background .15s;
+  }
+  input:focus { outline:none; border-color:var(--amber); background:#fff; }
+
+  button.btn {
+    width:100%; border:0; border-radius:13px; padding:15px; font-size:14.5px; font-weight:800;
+    cursor:pointer; background:var(--amber); color:#1a1a1a; transition:opacity .15s, transform .1s;
+    margin-top:6px;
+  }
+  button.btn:hover:not(:disabled) { opacity:.88; transform:scale(1.01); }
+  button.btn:disabled { opacity:.6; cursor:not-allowed; }
+
+  .error-msg { color:var(--red); font-size:12.5px; font-weight:700; margin-top:10px; text-align:center; min-height:16px; }
+  .footer-note { text-align:center; color:rgba(255,255,255,.35); font-size:11px; margin-top:18px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="top">
+    <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAXIAAABbCAYAAABu8A5DAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAFXDSURBVHhe7b13vB1nde/9W+t5npnZ7TQ1W3LF2OACwVjYxtiA6ZcQQpq5pEMg3EsoCcTUXByHUI0soSROwguBm6aE3CT3xmBKRHELyMEYB4PAlotkWeX0vfeU53nWev+YfWR5I8lHtmSkZH/9mc+29jlrzp49M2vWsyowYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIESNGjBgxYsSIEQAAGn5jxIgRjzy3b9owbnPPLbc7FsSOS2HHRWGyCV7MI0sotbnKhXsKV65f/0o/LD/ivzYjRf4Ioar0g3/7o07qnbGoOuDQJDakiCtUgpAhw8yzcEY9GnNxruj1Vq3rn3XWJdXwvkb85+HWWzckx5YzLwvl7pcR8mbi3Pe9+tMFiiASfYgEojED4oDO1j6O+diZT3n5Z4b3M+K/NiNFfphQvYzvueG4iRC6p7ZSfWwo586y1p9OKE8iUg9om8EAYQzAIoCOghYBBmyyNUaerSJvE9v8ulY2qOcvn/T0356nIh3+WyOOXrZ/8z3ncjX9OZZ8Kk0cYhB4BcRaeAUKH0EuvSGxrZsraX72lHMXNxJdLsP7GfFfm5EiP4Rs+uermpNrZ53Jwxsp5k+x8I9iQ4llO8VgJ1RCuIc0NSjLCEMWEMCaBFVewVoLZoYIABDYJohgH7zESvTOiOTbQuk/nHxh/vejm/noZ8s33n12K53+NELvLJQKR02oWHgx6kkWuyIfM9nYH++okrkLL3zT4rD8iBFLjBT5IeDu6/9sqtvd8eR2Q1/gqPvLhLxtITDGgNlAxUCVoQyUsgCbMmKlMHCAEKzNID4gdQlCrIAoUI0QAogMiBlEBgJCFYFo07sW5uP/SRsr/mY+Tnz/7ItfOjf8mUYc2ey49c8eLfGuz5bFtscjhpjSiq7K2J1F7m5qNCc+v9Cvrj/tmQvbRw/sEcthpMgfBndff2Wjmxf/zZn8Ta20PNexB8ODJILIwJCFwiAEAdQCBgArfAxIbIo0aaC70AWzhSVG5QtkWQqmWCtyEYAURAQVIKpAmVD4AHCCrDXVn1/0G/rR/cV42vy3Ey54Qz78GUcceey67R87Ut7xB4vdO15rOb+71ZzcFP3KP1W39vpjn/CrveHfHzHiwRgp8oeAbthgtq3d+Ssq3VcZ0388c5FmqSKGHEwKVQIJAcpQBQAGwUAIMMYhhACJWlvZAjgmWGtBrCjLAsQRDMLe7nBWRkRE5AiXWsSoyAsP41og117o9c2/2GTlnxx/9fZr6fKRFXcks+XGP30JYffljST8i2H9mzLId9atv7w//HsjRiyXkSI/SLZtvGyl0fyNNkneAICjCowhCCJAAkDBDGBgURMRnLEAGOID4BWNRgNlWaEMHp32OHwMyPMcaeZgDCNGD2elqSw6DIAgWvVo9c2/2GTln1x/9fZr6fKRFXcks+XGP30JYffljST8i2H9mzLId9atv7w//HsjRiyXkSI/SLZtvGyl0fyNNkneAICjCowhCCJAAkDBDGBgURMRnLEAGOID4BWNRgNlWaEMHp32OHwMyPMcaeZgDCNGD2elpz+8DWFmYVKVUZgS+aeg=" alt="L'Oreal" />
+    <div class="division">OPERATIONS</div>
+    <h1>Acceso Administrador</h1>
+    <p>CONSULTA DE CITAS · COLOMBIA</p>
+  </div>
+
+  <div class="panel">
+    <div class="field">
+      <label>Correo electrónico</label>
+      <input id="email" type="email" placeholder="tu.correo@loreal.com" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <button class="btn" id="btnLogin">Ingresar</button>
+    <div class="error-msg" id="err"></div>
+  </div>
+
+  <div class="footer-note">Acceso restringido · Personal autorizado L'Oreal</div>
+</div>
+
+<script>
+const SUPABASE_URL = "https://rejjjlkptibdhozlnnlt.supabase.co";
+const SUPABASE_ANON_KEY = "PEGA_AQUI_TU_ANON_KEY_REAL"; // 👈 reemplaza con la key nueva que ya rotaste
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Si ya hay sesión activa, saltar directo a consultas.html
+db.auth.getSession().then(({ data }) => {
+  if (data.session) window.location.href = "consultas.html";
+});
+
+const btn = document.getElementById('btnLogin');
+const err = document.getElementById('err');
+
+async function intentarLogin() {
+  err.textContent = '';
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  if (!email || !password) { err.textContent = 'Completa correo y contraseña.'; return; }
+
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+  const { error } = await db.auth.signInWithPassword({ email, password });
+  btn.disabled = false; btn.textContent = 'Ingresar';
+
+  if (error) { err.textContent = 'Credenciales incorrectas o usuario no autorizado.'; return; }
+  window.location.href = "consultas.html";
+}
+
+btn.addEventListener('click', intentarLogin);
+document.getElementById('password').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
+document.getElementById('email').addEventListener('keydown', (e) => { if (e.key === 'Enter') intentarLogin(); });
+</script>
+</body>
+</html>
