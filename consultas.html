@@ -155,14 +155,23 @@ async function buscar() {
   const { data, error } = await q.limit(2000);
   if (error) { document.getElementById('infoCount').textContent = 'Error: ' + error.message; return; }
 
+  // 👇 traemos todos los archivos de todas las citas encontradas en una sola consulta
+  const ids = data.map(f => f.id);
+  const { data: archivos } = await db.from('citas_archivos').select('cita_id, storage_path, nombre_original').in('cita_id', ids);
+
   for (const fila of data) {
-    if (fila.storage_path_orden_compra) {
-      const { data: signed } = await db.storage.from('citas').createSignedUrl(fila.storage_path_orden_compra, 3600);
-      fila._pdf_url = signed ? signed.signedUrl : null;
-    } else {
-      fila._pdf_url = null;
+    const archivosDeEstaCita = (archivos || []).filter(a => a.cita_id === fila.id);
+    fila._pdfs = [];
+    for (const arch of archivosDeEstaCita) {
+      const { data: signed } = await db.storage.from('citas').createSignedUrl(arch.storage_path, 3600);
+      if (signed) fila._pdfs.push({ url: signed.signedUrl, nombre: arch.nombre_original });
     }
   }
+
+  FILAS = data;
+  renderTabla(data);
+  document.getElementById('infoCount').textContent = `${data.length} resultado(s) encontrado(s).`;
+}
 
   FILAS = data;
   renderTabla(data);
